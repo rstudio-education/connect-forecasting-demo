@@ -1,0 +1,90 @@
+---
+title: "Minimum Viable Demo Setup Script"
+author: "Carl Howe"
+date: "6/22/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Description
+
+This document is used to generate some data for analysis during the RStudio Connect Minimum Viable Demo. I mean it to be run prior to performing the demo so that all the data necessary for the demo is in place.
+
+The concept is
+that a company called Digitcomputronimatics has 3 products: WidgetBasic (represented by variable widget_basic), WidgetMaster (widget_master), and WidgetKillDozer (widget_killdozer). Sales overall are increasing. However, the sales of the WidgetBasic and WidgetKillDozer are masking a decline in sales for the WidgetMaster, which our analysis will reveal.
+
+```{r data generation, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(tibbletime)
+library(lubridate)
+set.seed <- 1
+number_of_days <- 366+365+180
+sales_period <- lubridate::ymd(make_datetime(year=2016, day=1:(number_of_days)))
+
+trend <- function(x, amount) {
+  x * amount
+}
+
+seasonal <- function(x, offset, amount) {
+  amount * sin(2 * pi * (x + offset)/ 365)
+}
+
+noise <- function(x, amount) {
+  runif(n = x, min = -amount, max = amount)
+}
+
+widget_sales <- tibble('date' = sales_period, 
+                  'widget_basic_sales'     =  ts(500 + 
+                                              trend(1:number_of_days, 150/365) + 
+                                              seasonal(1:number_of_days, 270, 30) + 
+                                              noise(1:number_of_days, 300), frequency=365),
+                  'widget_killdozer_sales' = ts(500 +
+                                             trend(1:number_of_days, 75/365) + 
+                                             seasonal(1:number_of_days, 315, 30) + 
+                                             noise(1:number_of_days, 200), frequency=365),
+                  'widget_master_sales'    = ts(600 + 
+                                             trend(1:number_of_days, -75/365) + 
+                                             seasonal(1:number_of_days, 0, 60) + 
+                                             noise(1:number_of_days, 400), frequency=365))
+
+widget_sales <- widget_sales %>% 
+                       mutate(total_sales = widget_basic_sales + widget_killdozer_sales + widget_master_sales)
+widget_sales <- as_tbl_time(widget_sales, index=date)
+print(widget_sales %>% filter_time(~ '2018'))
+widget_sales_gathered <- gather(widget_sales, key='product', value="sales", 
+                                widget_basic_sales, widget_killdozer_sales, widget_master_sales, total_sales) %>%
+                         arrange(date)
+## ggplot(data=widget_sales, aes(x=date, y=total_sales)) + geom_line() + scale_x_datetime() + scale_y_continuous()
+ggplot(data=widget_sales_gathered, aes(x=date, y=sales, color=product, group=product)) + 
+    geom_line(alpha=0.3) + geom_smooth(span=0.3, method="loess", se=FALSE) + scale_x_date() + scale_y_continuous() +
+    ggtitle("Daily Widget Sales Data")
+system("mkdir /tmp/mvd-data")
+write_csv(widget_sales, "/tmp/mvd-data/widget_sales_daily.csv")
+```
+
+
+Generate weekly and monthly versions of the data for the use of the demo and write them out into the file system. Normally, we do this in a database in a real world application, but this is just a minimal demo.
+
+```{r collapsing data, echo=FALSE, message=FALSE, warning=FALSE}
+widget_sales_weekly <- widget_sales %>% collapse_by("weekly") %>% dplyr::group_by(date) %>% dplyr::summarise_all(sum)
+widget_sales_weekly_gathered <- gather(widget_sales_weekly, key='product', value="sales", 
+                                widget_basic_sales, widget_killdozer_sales, widget_master_sales, total_sales) %>%
+                         arrange(date)
+widget_sales_monthly <- widget_sales %>% collapse_by("monthly") %>% dplyr::group_by(date) %>% dplyr::summarise_all(sum)
+widget_sales_monthly_gathered <- gather(widget_sales_monthly, key='product', value="sales", 
+                                widget_basic_sales, widget_killdozer_sales, widget_master_sales, total_sales) %>%
+                         arrange(date)
+write_csv(widget_sales_weekly, "/tmp/mvd-data/widget_sales_weekly.csv")
+ggplot(data=widget_sales_weekly_gathered, aes(x=date, y=sales, color=product, group=product)) + 
+    geom_line() + scale_x_date() + scale_y_continuous() +
+    ggtitle("Weekly Widget Sales Data")
+ggplot(data=widget_sales_monthly_gathered, aes(x=date, y=sales, color=product, group=product)) + 
+    geom_line() + scale_x_date() + scale_y_continuous() +
+    ggtitle("Monthly Widget Sales Data")
+write_csv(widget_sales_monthly, "/tmp/mvd-data/widget_sales_monthly.csv")
+```
+
+Assuming all the data wrote out properly, you're now ready to begin the demo.

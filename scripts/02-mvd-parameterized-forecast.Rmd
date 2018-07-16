@@ -1,0 +1,123 @@
+---
+title: "Parameterized Forecast"
+author: "Data Scientist Dave"
+date: "July 11, 2018"
+output: html_document
+params:
+  product_selection: All
+  forecast_duration: 9
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(tibbletime)
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+```
+### Background
+
+Virginia wants to dive into the details of the forecast by looking at the forecasts for each individual product. Dave now adds parameters to his analysis that allows the forecasting of individual products as well as the forecast duration.
+
+### Parameterized Forecast
+This analysis dashboard allows you to control what which product is analyzed and how many months out to forecast its sales. It has two parameters to set:
+
+* **product_selection**: This parameter should be set to one of four the four product names: `Basic`, `Killdozer`, `Master`, and `All`, which is the total sales forecast.
+* **forecast_duration**: This parameter should be set to the number of months you'd like the forecast for. The value is currently set to 9.
+
+Just to make things easier for the product managers, I've set the parameters correctly for each product and scheduled reports to be emailed to them from RStudio Connect on the first of each month.
+
+---
+
+```{r heading, results="asis",  echo=FALSE, message=FALSE, warning=FALSE}
+cat("## Sales Forecast For ", params$product_selection, " Widgets\n")
+sf <- stamp_date("Created Sunday, January 14, 2018")
+cat(sf(now()), "\n")
+```
+
+The following is the 9-month sales forecast for your based on current historical data. 
+
+```{r monthly data, echo=FALSE, message=FALSE, warning=FALSE}
+product_codes = data.frame('product_selection' = c("basic", "killdozer", "master", "all"),
+                           'product_name' = c("widget_basic_sales",
+                                               "widget_killdozer_sales", 
+                                               "widget_master_sales", 
+                                               "total_sales"))
+product_id_rows <- product_codes %>% filter(product_selection == tolower(params$product_selection))
+if (length(product_id_rows) == 0) {
+  print ("invalid product selection")
+  stop()
+}
+product_name <- as.character(product_id_rows[1,"product_name"])     # Use first result if multiple results returned
+filename <- "/tmp/mvd-data/widget_sales_monthly.csv"
+widget_sales <- read_csv(filename, col_types = cols(
+  date = col_date(format = "%Y-%m-%d"),
+  widget_basic_sales = col_double(),
+  widget_killdozer_sales = col_double(),
+  widget_master_sales = col_double(),
+  total_sales = col_double()
+))
+
+## Gather all the product info into a single column arranged 
+widget_sales_gathered <- gather(widget_sales, key='product', value="sales", 
+                                widget_basic_sales, 
+                                widget_killdozer_sales, 
+                                widget_master_sales, total_sales) %>%
+                                arrange(date)
+
+product_sales <- widget_sales_gathered %>% filter(product == product_name)
+
+## Wwe have to convert our start_year parameter into a formula
+## for filter_time.
+widget_sales_filtered <- tbl_time(product_sales, index=date) %>% 
+  filter_time('2016' ~ 'end')
+
+## Now gather all the data for each product into its own row, with the sales becoming
+## a sub-tibble called 'data.tbl'
+
+widget_sales_nested <- widget_sales_filtered %>%
+  group_by(product) %>%
+  nest(.key = "data.tbl")
+
+## We need a time series for forecasting, so make one for each product
+widget_sales_ts <- widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+sales_models <- widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply ets function and put output in data.ts column
+
+sales_forecasts <- sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=params$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+sales_forecasts_tidy <- sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+p <- sales_forecasts_tidy %>%
+  ggplot(aes(x = index, y = sales, color = key, group = product)) +
+    geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+                fill = "#D5DBFF", color = NA, size = 0) +
+    geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+                fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+    geom_line() +
+    labs(title = paste0("Monthly Sales For ", params$product_selection, " Widgets"),
+         subtitle = "Holt Winters Model",
+         x = "", y = "Thousands") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+    scale_color_tq() +
+    scale_fill_tq() +
+    facet_wrap(~ product, scales = "free_y", ncol = 2) +
+    theme_tq() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p)
+
+```

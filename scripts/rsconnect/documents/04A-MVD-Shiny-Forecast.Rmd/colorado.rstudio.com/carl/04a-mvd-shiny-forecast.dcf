@@ -1,0 +1,12 @@
+name: 04a-mvd-shiny-forecast
+title: 04A-MVD-Shiny-Forecast
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1282
+bundleId: 11730
+url: http://colorado.rstudio.com:3939/content/1282/
+when: 1531413657.24333
+asMultiple: FALSE
+asStatic: FALSE

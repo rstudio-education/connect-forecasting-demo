@@ -1,0 +1,12 @@
+name: 01-first-analysis
+title: 01-First-Analysis
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1226
+bundleId: 10415
+url: http://colorado.rstudio.com:3939/content/1226/
+when: 1530034435.83694
+asMultiple: FALSE
+asStatic: FALSE

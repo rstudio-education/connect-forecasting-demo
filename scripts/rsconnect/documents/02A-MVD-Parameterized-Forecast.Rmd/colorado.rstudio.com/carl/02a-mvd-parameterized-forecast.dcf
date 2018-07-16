@@ -1,0 +1,12 @@
+name: 02a-mvd-parameterized-forecast
+title: 02A-MVD-Parameterized-Forecast
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1281
+bundleId: 11661
+url: http://colorado.rstudio.com:3939/content/1281/
+when: 1531337274.46168
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,134 @@
+---
+title: "Interactive Widget Forecast in Shiny"
+author: "Date Scientist Dave"
+date: "July 12, 2018"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(tibbletime)
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
+monthly_widget_sales_gathered <- gather(monthly_widget_sales, key='product', value="sales", 
+                                widget_basic_sales, 
+                                widget_killdozer_sales, 
+                                widget_master_sales, total_sales) %>%
+                                arrange(date) # Gather all the product info into a single column arranged 
+## Now gather all the data for each product into its own row, with the sales becoming
+## a sub-tibble called 'data.tbl'
+
+monthly_widget_sales_nested <- monthly_widget_sales_gathered %>%
+  group_by(product) %>%
+  nest(.key = "data.tbl")
+
+product_codes = data.frame('product_selection' = c("Basic", "Killdozer", "Master", "All"),
+                           'product_name' = c("widget_basic_sales",
+                                               "widget_killdozer_sales", 
+                                               "widget_master_sales", 
+                                               "total_sales"))
+
+```
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+```{r Input}
+selectInput("series", "Product Name", product_codes$product_selection)
+sliderInput("forecast_duration", "Number of months to forecast", 9, min = 3, max = 15)
+```
+
+Outputs
+-----------------------------------------------------------------------
+
+### Forecast
+
+```{r Rendering}
+renderPlot({
+
+product_id_rows <- product_codes %>% filter(product_selection == input$series)
+product_name <- as.character(product_id_rows[1,"product_name"])     # Use first result if multiple results returned
+monthly_widget_sales_ts <- monthly_widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+monthly_sales_models <- monthly_widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply ets function and put output in data.ts column
+
+monthly_sales_forecasts <- monthly_sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+monthly_sales_forecasts_filtered <- monthly_sales_forecasts_tidy %>% dplyr::filter(product == product_name)
+
+p <- monthly_sales_forecasts_filtered %>%
+  ggplot(aes(x = index, y = sales, color = key, group = product)) +
+    geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+                fill = "#D5DBFF", color = NA, size = 0) +
+    geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+                fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+    geom_line() +
+    labs(title = paste0("Monthly Sales For ", product_name, " Widgets"),
+         subtitle = "Holt Winters Model Forecasts",
+         x = "", y = "Thousands") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+    scale_color_tq() +
+    scale_fill_tq() +
+    theme_tq() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print(p)
+
+})
+```
+
+### Tabular Results
+
+```{r results="asis", echo=FALSE, message=FALSE, warning=FALSE}
+
+renderTable({
+  product_id_rows <- product_codes %>% filter(product_selection == input$series)
+  product_name <- as.character(product_id_rows[1,"product_name"])     # Use first result if multiple results returned
+  monthly_widget_sales_ts <- monthly_widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+  monthly_sales_models <- monthly_widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply ets function and put output in data.ts column
+
+  monthly_sales_forecasts <- monthly_sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+  ## Final steps: unnest the forecasts for each product into tidy form and then plot results
+  monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+    mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+    unnest(sweep)
+
+  monthly_sales_forecasts_filtered <- monthly_sales_forecasts_tidy %>% dplyr::filter(product == product_name)
+  table_output <- monthly_sales_forecasts_filtered %>% 
+    mutate(textdate = as.character(as.yearmon(index))) %>%
+    select(textdate, sales)
+  names(table_output) <- c("Date", "Sales")
+  print(table_output)
+ }, striped=TRUE, spacing="xs", digits=0
+)
+```
+

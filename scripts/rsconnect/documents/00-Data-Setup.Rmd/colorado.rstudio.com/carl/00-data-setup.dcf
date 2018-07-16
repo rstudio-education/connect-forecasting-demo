@@ -1,0 +1,12 @@
+name: 00-data-setup
+title: 00-Data-Setup
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1227
+bundleId: 10416
+url: http://colorado.rstudio.com:3939/content/1227/
+when: 1530034521.81084
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,12 @@
+name: 01-mvd-first-analysis
+title:
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1229
+bundleId: 10586
+url: http://colorado.rstudio.com:3939/content/1229/
+when: 1530196852.41364
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,12 @@
+name: 03-mvd-parameterize
+title: 03-MVD-Parameterize
+username: carl
+account: carl
+server: colorado.rstudio.com
+hostUrl: http://colorado.rstudio.com:3939/__api__
+appId: 1256
+bundleId: 11219
+url: http://colorado.rstudio.com:3939/content/1256/
+when: 1530885325.7602
+asMultiple: FALSE
+asStatic: FALSE

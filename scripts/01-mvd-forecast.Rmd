@@ -1,0 +1,123 @@
+---
+title: "Forecast and Analysis Publishing"
+author: "Data Scientist Dave"
+date: "July 10, 2018"
+output: html_document
+---
+#### Background
+
+VP Virginia is concerned about the sales downturn in total widget sales over the past few months, despite being up year over year. She asks data scientist Dave to do a forecast for the rest of 2018 from her Excel spreadsheet.
+
+Dave pulls the data into R and fits a HoltWinters model that can accommodate both trending and seasonality. He then generates a forecast using that model, graphs the results, and publishes the document on RStudio Connect for Virginia so that the document can be shared with others.
+
+---
+
+## Dave's Forecast
+
+Management has requested a sales forecast for the remainder of 2018 based on historical sales data. This document describes the techniques I used to generate the forecast and summarizes the forecast results.
+
+### Historical Data Used
+
+Management provided the following historical data for the forecast.
+[![Excel Bar chart of sales data](MVD-monthly-sales-screenshot.jpg)](http://MVD-monthly-sales-screenshot.jpg)
+
+### Approach
+
+I fit a Holt Winters model on the total sales from the spreadsheet. I chose the Holt Winters model because it incorporates level, trend, and seasonality components, all of which may be present in our sales data.
+
+Once the model was fit, I created a forecast using that model for the next 9 months and used `ggplot` to show the results graphically. The results of the analysis have been published to our RStudio Connect server where others within the company can view them.
+
+### Results
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## We do all the computations up front so that we can present the results in report form.
+
+library(tidyverse)
+library(lubridate)
+library(tibbletime)
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
+monthly_widget_sales_gathered <- monthly_widget_sales %>% 
+  select(date, total_sales) %>% 
+  gather(product, sales, -date) %>%
+  arrange(date) # Gather all the product info into a single column arranged 
+
+## Now gather all the data for each product into its own row, with the sales becoming
+## a sub-tibble called 'data.tbl'
+monthly_widget_sales_nested <- monthly_widget_sales_gathered %>%
+  group_by(product) %>%
+  nest(.key = "data.tbl")
+
+## We need a time series for forecasting, so make one for each product
+
+monthly_widget_sales_ts <- monthly_widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+monthly_sales_models <- monthly_widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply HoltWinters model and put output in data.ts
+
+monthly_sales_forecasts <- monthly_sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=9)) # apply forecast for 6 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+```
+
+
+Here is the sales data through June.
+
+---
+
+```{r results="asis", echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(tail(monthly_widget_sales_gathered, 6) %>%  select(date, sales), 
+             caption = "Historical Widget Sales 2018",
+             digits=0, format.args=list(big.mark = ','), format = "html", table.attr = "style='width:30%;'")
+```
+
+---
+
+Our forecast yields the following results through Q1 of 2019.
+```{r results="asis", echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(as.data.frame(monthly_sales_forecasts$fcast) %>% select(Point.Forecast), 
+             caption = "Widget Sales Forecast",
+             digits=0, format.args=list(big.mark = ','), format = "html", table.attr = "style='width:30%;'")
+```
+
+---
+
+If we combine the historical data with the forecast, we can show the results graphically as follows. The forecast values appear in red.
+
+```{r monthly data, echo=FALSE, message=FALSE, warning=FALSE}
+monthly_sales_forecasts_tidy %>%
+  ggplot(aes(x = index, y = sales, color = key, group = product)) +
+    geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+                fill = "#D5DBFF", color = NA, size = 0) +
+    geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+                fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+    geom_line() +
+    labs(title = "Holt Winters Model Forecast",
+         subtitle = "Total Sales of Widgets",
+         x = "", y = "Thousands") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+    scale_color_tq() +
+    scale_fill_tq() +
+    facet_wrap(~ product, scales = "free_y", ncol = 2) +
+    theme_tq() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Conclusions
+Based on the historical data provided, we expect declining sales through the end of the year, with a possible recovery in the first quarter of 2019.
+
