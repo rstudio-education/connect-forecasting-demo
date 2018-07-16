@@ -11,7 +11,7 @@ This script guides a presenter through a quick demo of 5 major features of RStud
 5. Although I'm using a script to guide people through the 5 artifacts that make up this demo, there's no real need to follow it word for word. 
 
 ## Demo Script	
-Hi everyone. My name is Carl Howe and my show and tell is "How to demonstrate the major functions of RStudio Connect in 5 Minutes." The audience for this show and tell is a business user, not an R programmer or data scientist. If you think this quick demo is too simple, then it's probably just about right for an executive audience (sorry Tareef).
+Hi everyone. My name is <<Your Name Goes Here>> and my show and tell is "How to demonstrate the major functions of RStudio Connect in 5 Minutes." The audience for this show and tell is a business user, not an R programmer or data scientist. If you think this quick demo is too simple, then it's probably just about right for an executive audience (sorry Tareef).
 
 I want to begin by defining what RStudio Connect is.
   
@@ -81,7 +81,6 @@ The takeaways from this API are:
 * The knowledge that Dave created in his model can now be used by other business people in the company without them knowing R. All they need to know is their URL.
 * Dave's forecast is now hosted by RStudio Connect, allowing him to move onto other projects without being involved in this project further.
 * The output of Dave's model can be easily integrated into other business tools such as Excel spreadsheets.
-
 
 ### Document 5: Automated PowerPoint Forecast
 Virginia now has to present these monthly forecasts to the CEO in a PowerPoint presentation. Instead of just copying and pasting the information into a PowerPoint deck, Dave changes the R Markdown codea around his forecast so that it creates PowerPoint slides for Virginia directly.
