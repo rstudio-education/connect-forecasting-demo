@@ -11,11 +11,11 @@ This script guides a presenter through a quick demo of 5 major features of RStud
 5. Although I'm using a script to guide people through the 5 artifacts that make up this demo, there's no real need to follow it word for word. 
 
 ## Demo Script	
-Hi everyone. My name is <<Your Name Goes Here>> and my show and tell is "How to demonstrate the major functions of RStudio Connect in 5 Minutes." The audience for this show and tell is a business user, not an R programmer or data scientist. If you think this quick demo is too simple, then it's probably just about right for an executive audience (sorry Tareef).
+Hi everyone. My name is *Your name goes here* and I'm going to demonstrate the major functions of RStudio Connect in about 10 minutes." The audience for this show and tell is a business user, not an R programmer or data scientist. If you think this quick demo is too simple, then it's probably just about right for an executive audience (my apologies to any executives attending).
 
 I want to begin by defining what RStudio Connect is.
   
-RStudio Connect is a software platform for sharing data science. Many data scientists struggle to share their analyses and models with business people in their companies. RStudio Connect allows them to share their models, apps, and results with others with a single click. Unlike other data science platforms such as SAS or Tableau, RStudio Connect is open and extensible to other languages and platforms.
+RStudio Connect is a software platform for sharing data science. Many data scientists struggle to share their analyses with business people in their companies. RStudio Connect allows them to share their complex models, visualizations, and apps with others with a single click. Unlike other data science platforms such as SAS or Tableau, RStudio Connect is extensible to other languages and platforms, and as you'll see, doesn't even require you to know R to make use of it.
 
 I'm going to use a scenario that demonstrates 5 functions of RStudio Connect: 
 
