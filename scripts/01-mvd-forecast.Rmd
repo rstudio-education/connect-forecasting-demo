@@ -33,11 +33,19 @@ library(forecast)
 library(tidyquant)
 library(timetk)
 library(sweep)
-monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
-monthly_widget_sales_gathered <- monthly_widget_sales %>% 
+widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
+widget_sales_gathered <- widget_sales %>% 
   select(date, total_sales) %>% 
   gather(product, sales, -date) %>%
   arrange(date) # Gather all the product info into a single column arranged 
+
+## Create time series from the data and forecast it
+widget_sales_ts <- widget_sales_gathered %>% 
+  mutate(sales_ts = ts(sales, start=2016, freq=12))
+
+## Now model and forecast out
+widget_sales_model <- HoltWinters(widget_sales_ts$sales_ts)
+widget_sales_forecast <- forecast(widget_sales_model, h=9)
 
 ## Now gather all the data for each product into its own row, with the sales becoming
 ## a sub-tibble called 'data.tbl'

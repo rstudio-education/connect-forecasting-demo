@@ -1,0 +1,114 @@
+---
+title: "Widget Forecast"
+author: "Data Scientist Dave"
+output:
+   powerpoint_presentation:
+        reference_doc: rstudio-template.pptx
+---
+
+## Overview
+
+- Historical widget data through June 30, 2018
+- Holt Winters model
+- Forecast through March 31, 2019
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+## We do all the computations up front so that we can present the results in report form.
+
+library(tidyverse)
+library(lubridate)
+library(tibbletime)
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+library(DT)
+
+monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
+monthly_widget_sales_gathered <- monthly_widget_sales %>% 
+  select(date, total_sales) %>% 
+  gather(product, sales, -date) %>%
+  arrange(date) # Gather all the product info into a single column arranged 
+
+## Now gather all the data for each product into its own row, with the sales becoming
+## a sub-tibble called 'data.tbl'
+monthly_widget_sales_nested <- monthly_widget_sales_gathered %>%
+  group_by(product) %>%
+  nest(.key = "data.tbl")
+
+## We need a time series for forecasting, so make one for each product
+
+monthly_widget_sales_ts <- monthly_widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+monthly_sales_models <- monthly_widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply HoltWinters model and put output in data.ts
+
+monthly_sales_forecasts <- monthly_sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=9)) # apply forecast for 6 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+```
+
+## Sales Table
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=4}
+output_table <- tail(monthly_widget_sales_gathered, 9) %>%  select(date, sales)
+names(output_table) <- c("Date", "Sales")
+knitr::kable(output_table,
+             caption = "Historical Widget Sales 2018 (All Products)",
+             align = c('c', 'c'),
+             digits=0, 
+             format.args=list(big.mark = ','),
+             format = "pandoc")
+
+```
+
+## Forecast Table
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+forecast_sales <- as.data.frame(monthly_sales_forecasts$fcast) %>% select(Point.Forecast)
+output_forecast <- tibble("Month" = row.names(forecast_sales),
+                          "Forecast Sales" = forecast_sales$Point.Forecast)
+knitr::kable(output_forecast, 
+             caption = "Widget Sales Forecast Through Q1 2019 (All Products)",
+             align = c('c', 'c'),
+             digits=0, 
+             format.args=list(big.mark = ','), 
+             format = "pandoc")
+
+```
+
+## Forecast Graph
+
+```{r monthly data, echo=FALSE, message=FALSE, warning=FALSE, fig.width=9.5}
+
+monthly_sales_forecasts_tidy %>%
+  ggplot(aes(x = index, y = sales, color = key, group = product)) +
+    geom_ribbon(aes(ymin = lo.95, ymax = hi.95),
+                fill = "#D5DBFF", color = NA, size = 0) +
+    geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key),
+                fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+    geom_line() +
+    labs(title = "Holt Winters Model Forecast",
+         subtitle = "Total Sales of Widgets",
+         x = "", y = "Thousands") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+    scale_color_tq() +
+    scale_fill_tq() +
+    facet_wrap(~ product, scales = "free_y", ncol = 2) +
+    theme_tq() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```

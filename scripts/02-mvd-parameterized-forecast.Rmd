@@ -4,7 +4,7 @@ author: "Data Scientist Dave"
 date: "July 11, 2018"
 output: html_document
 params:
-  product_selection: All
+  product_selection: Master
   forecast_duration: 9
 ---
 
