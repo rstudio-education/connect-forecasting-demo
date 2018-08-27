@@ -1,9 +1,11 @@
 ---
-title: "Widget Forecast"
+title: "Widget Forecast PowerPoint"
 author: "Data Scientist Dave"
+resource_files:
+ - ./digicomp-template.pptx
 output:
-   powerpoint_presentation:
-        reference_doc: rstudio-template.pptx
+  powerpoint_presentation:
+    reference_doc: ./digicomp-template.pptx
 ---
 
 ## Overview

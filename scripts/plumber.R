@@ -36,7 +36,7 @@ format_html <- function(df) {
 #* @get /forecast
 #* @html
 
-out <- function(series = "All", forecast_duration = 9) {
+function(series = "All", forecast_duration = 9) {
   
   # load data in 'global' chunk so it can be shared by all users of the dashboard
   monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
@@ -84,6 +84,18 @@ out <- function(series = "All", forecast_duration = 9) {
     select(textdate, rounded_sales)
   names(table_output) <- c("Date", "Sales")
   result <- format_html(table_output)
-  result
+  return(result)
 }
 
+#* Return a description of this API
+#* @get /
+#* @html
+function() {
+    text <- paste("This API provides widget forecasts for Digicomputronimatics.",
+              "Call this API using HTTP GET /forecast.",
+              "Parameter forecast_period specifies how many months to forecast.",
+              "Parameter series species the product name from the list All, Basic, Master, and Killdozer", 
+              sep="</p><p>")
+    string <- paste0("<html><p>", text, "</p></html>" )
+    return(string)
+}

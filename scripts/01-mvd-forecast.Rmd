@@ -49,7 +49,7 @@ widget_sales_forecast <- forecast(widget_sales_model, h=9)
 
 ## Now gather all the data for each product into its own row, with the sales becoming
 ## a sub-tibble called 'data.tbl'
-monthly_widget_sales_nested <- monthly_widget_sales_gathered %>%
+monthly_widget_sales_nested <-widget_sales_gathered %>%
   group_by(product) %>%
   nest(.key = "data.tbl")
 
