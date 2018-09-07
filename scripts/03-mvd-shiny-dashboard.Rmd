@@ -1,0 +1,249 @@
+---
+title: "Interactive Widget Forecast in Shiny"
+author: "Date Scientist Dave"
+date: "July 12, 2018"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(tibbletime)
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+library(flexdashboard)
+library(glue)
+
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
+monthly_widget_sales_gathered <- gather(monthly_widget_sales, key='product', value="sales", 
+                                widget_basic_sales, 
+                                widget_killdozer_sales, 
+                                widget_master_sales, total_sales) %>%
+                                arrange(date) # Gather all the product info into a single column arranged 
+## Now gather all the data for each product into its own row, with the sales becoming
+## a sub-tibble called 'data.tbl'
+
+monthly_widget_sales_nested <- monthly_widget_sales_gathered %>%
+  group_by(product) %>%
+  nest(.key = "data.tbl")
+
+product_codes = data.frame('product_selection' = c("Basic", "Killdozer", "Master", "All"),
+                           'product_name' = c("widget_basic_sales",
+                                               "widget_killdozer_sales", 
+                                               "widget_master_sales", 
+                                               "total_sales"))
+
+monthly_widget_sales_ts <- monthly_widget_sales_nested %>%
+  mutate(data.ts = map(.x = data.tbl,
+                       .f = tk_ts,        # this function creates the time series
+                       start= 2016,
+                       freq = 12))
+
+monthly_sales_models <- monthly_widget_sales_ts %>%
+  mutate(fit.model = map(data.ts, HoltWinters))     # apply ets function and put output in data.ts column
+
+latest_widget_sales <- monthly_widget_sales_gathered %>% 
+  group_by(product) %>% 
+  filter(date == max(date)) %>% 
+  ungroup()
+basic_sales <- latest_widget_sales %>% filter(product == 'widget_basic_sales') %>% select(sales)
+master_sales <- latest_widget_sales %>% filter(product == 'widget_master_sales') %>% select(sales)
+killdozer_sales <- latest_widget_sales %>% filter(product == 'widget_killdozer_sales') %>% select(sales)
+all_sales <- latest_widget_sales %>% filter(product == 'total_sales') %>% select(sales)
+latest_reported_date <- latest_widget_sales %>% filter(product == 'total_sales') %>% select(date)
+
+```
+
+Inputs {.sidebar}
+==================
+
+```{r Input}
+sliderInput("forecast_duration", "Number of months to forecast", 9, min = 3, max = 15)
+```
+
+Outputs
+==================
+
+Row {data-height=200,  data-width=1200}
+----------------------------------
+
+### Basic {.value-box}
+
+```{r Basic Widgets}
+renderValueBox({
+  valueBox(value = format(round(basic_sales$sales), big.mark=","), 
+           caption=glue("As of {latest_reported_date$date}"), 
+           icon="fa-bicycle")
+})
+```
+
+### Master {.value-box}
+
+```{r Master Widgets, echo=FALSE}
+renderValueBox({
+  valueBox(value = format(round(master_sales$sales), big.mark=","), 
+           caption=glue("As of {latest_reported_date$date}"), 
+           icon="fa-motorcycle")
+})
+```
+
+### KillDozer {.value-box}
+
+```{r KillDozer Widgets, echo=FALSE}
+renderValueBox({
+  valueBox(value = format(round(killdozer_sales$sales), big.mark=","), 
+           caption=glue("As of {latest_reported_date$date}"), 
+           icon="fa-fighter-jet")
+})
+```
+
+Row {data-height=200,  data-width=1200}
+----------------------------------
+
+### Basic Forecast {.value-box}
+
+```{r Basic Forecast Valuebox}
+renderValueBox({
+  monthly_sales_forecasts <- monthly_sales_models %>% 
+  filter(product == "widget_basic_sales") %>% 
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts_tidy %>% mutate(sales = round(sales))
+
+latest_widget_forecast <- monthly_sales_forecasts_tidy %>% 
+  group_by(product) %>% 
+  filter(index == max(index)) %>% 
+  ungroup()
+
+basic_forecast <- latest_widget_forecast %>% filter(product == 'widget_basic_sales') %>% select(sales)
+latest_forecast_date <- latest_widget_forecast %>% filter(product == 'widget_basic_sales') %>% select(index)
+
+  boxcolor <- ifelse(basic_forecast$sales >= basic_sales$sales, "success", "danger")
+  valueBox(value = format(round(basic_forecast$sales), big.mark=","), 
+           caption=glue("As of {latest_forecast_date$index}"), 
+           color=boxcolor,
+           icon="fa-bicycle")
+})
+```
+
+### Master Forecast {.value-box}
+
+```{r Master Forecast Valuebox, echo=FALSE}
+renderValueBox({
+monthly_sales_forecasts <- monthly_sales_models %>% 
+  filter(product == "widget_master_sales") %>% 
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts_tidy %>% mutate(sales = round(sales))
+
+latest_widget_forecast <- monthly_sales_forecasts_tidy %>% 
+  group_by(product) %>% 
+  filter(index == max(index)) %>% 
+  ungroup()
+
+master_forecast <- latest_widget_forecast %>% filter(product == 'widget_master_sales') %>% select(sales)
+latest_forecast_date <- latest_widget_forecast %>% filter(product == 'widget_master_sales') %>% select(index)
+
+  boxcolor <- ifelse(master_forecast$sales >= master_sales$sales, "success", "danger")
+  valueBox(value = format(round(master_forecast$sales), big.mark=","), 
+           caption=glue("As of {latest_forecast_date$index}"), 
+           color=boxcolor,
+           icon="fa-motorcycle")
+})
+```
+
+### KillDozer Forecast {.value-box}
+
+```{r KillDozer Forecast Valuebox, echo=FALSE}
+renderValueBox({
+monthly_sales_forecasts <- monthly_sales_models %>%
+  filter(product == "widget_killdozer_sales") %>% 
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts_tidy %>% mutate(sales = round(sales))
+
+latest_widget_forecast <- monthly_sales_forecasts_tidy %>% 
+  group_by(product) %>% 
+  filter(index == max(index)) %>% 
+  ungroup()
+
+killdozer_forecast <- latest_widget_forecast %>% filter(product == 'widget_killdozer_sales') %>% select(sales)
+latest_forecast_date <- latest_widget_forecast %>% filter(product == 'widget_killdozer_sales') %>% select(index)
+
+  boxcolor <- ifelse(killdozer_forecast$sales >= killdozer_sales$sales, "success", "danger")
+  valueBox(value = format(round(killdozer_forecast$sales), big.mark=","), 
+           caption=glue("As of {latest_forecast_date$index}"), 
+           color=boxcolor,
+           icon="fa-fighter-jet")
+})
+```
+
+
+Row  {data-height=1000, data-width=1200}
+----------------------------------
+
+### Forecast
+
+```{r Rendering}
+library(highcharter)
+renderHighchart({
+
+monthly_sales_forecasts <- monthly_sales_models %>%
+  mutate(fcast = map(fit.model, forecast, h=input$forecast_duration)) # apply forecast for 12 months
+
+## Final steps: unnest the forecasts for each product into tidy form and then plot results
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts %>%
+  mutate(sweep = map(fcast, sw_sweep, fitted = FALSE, timetk_idx = TRUE)) %>%
+  unnest(sweep)
+
+monthly_sales_forecasts_tidy <- monthly_sales_forecasts_tidy %>% mutate(sales = round(sales))
+
+hc <- highchart() %>%
+  hc_add_series_df(monthly_sales_forecasts_tidy, "line", x=index, y=sales, group=product) %>%
+    hc_xAxis(type = "datetime", zoomType = "x")
+
+hc$x$type <- "stock"
+hc
+
+# p <- monthly_sales_forecasts_tidy %>%
+#   ggplot(aes(x = index, y = sales, color = key, group = product)) +
+#     geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+#                 fill = "#D5DBFF", color = NA, size = 0) +
+#     geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+#                 fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+#     geom_line() +
+#     labs(title = paste0("Monthly Sales For ", product_name, " Widgets"),
+#          subtitle = "Holt Winters Model Forecasts",
+#          x = "", y = "Thousands") +
+#     scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+#     scale_color_tq() +
+#     scale_fill_tq() +
+#     theme_tq() +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# print(p)
+
+})
+```
