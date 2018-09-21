@@ -11,85 +11,275 @@ This script guides a presenter through a quick demo of 5 major features of RStud
 5. Although I'm using a script to guide people through the 5 artifacts that make up this demo, there's no real need to follow it word for word. 
 
 ## Demo Script	
-Hi everyone. My name is *Your name goes here* and I'm going to demonstrate the major functions of RStudio Connect in about 10 minutes." The audience for this show and tell is a business user, not an R programmer or data scientist. If you think this quick demo is too simple, then it's probably just about right for an executive audience (my apologies to any executives attending).
 
-I want to begin by defining what RStudio Connect is.
+### Title Slide: Introducing RStudio Connect
+
+Hi everyone. My name is *Your name goes here* and I'd like to introduce you to RStudio Connect.
+
+The audience for this show and tell is a business user, not an R programmer or data scientist. We hope it will show you how Connect will help your business get more out of the data science your company does.
+
+I'm going to start with a few words from Joseph Priestly. Now if you don't recognize the name, that's OK; he's not currently running for office or anything.
+
+### Slide 2: Joseph Priestly Quote
+
+Joseph Priestly is actually the discoverer of oxygen. He lived from 1733 to 1804. And he said
+
+> "The more elaborate our means of communication, the less we communicate."
+
+I'd add on one more sentence to that to update it for today.
+
+### Slide 3: Data Scientists Aren't Exempt
+
+>“Data Scientists are not exempt from this rule.”
+
+Data science certainly seems like an elaborate form of communication for most of us, which means most organizations have difficulty putting it to work.
+
+The news is that RStudio Connect can help
+
+### Slide 4: RStudio Connect Definition
+
+> RStudio Connect is a publishing platform that makes sharing data science simple.
+
+### Slide 5: RStudio Connect Bridges The Gap
+
+By making sharing data science easier, RStudio Connect bridges the gap between your data scientists and the business.
+
+### Slide 6: 5 Features of Connect
+
+I'm going to demonstrate how RStudio Connect bridges this gap in 5 ways. I'll demonstrate how RStudio Connect simplifies:
+
+1. Results sharing
+2. Custom reports with scheduling and email
+3. Dynamic analytics and dashboards
+4. Application Programming Interfaces (API)
+5. Slide publishing
+
+Before we get into these capabilities, I first want to set up a business scenario.
+
+### Slide 7: Our Business Scenario
+
+I'm going to tell you the story of 
+
+1. Data Scientist Dave ►, who works for 
+2. Vice President Virginia ►. They work for a company called Digicomputronimatics that makes 
+3. widgets ►.
+
+_Run the setup script link shown at the bottom of this slide to generate the data for the rest of this demo_
+
+### Slide 8: Our Widgets
+
+The widgets come in three types:
   
-RStudio Connect is a software platform for sharing data science. Many data scientists struggle to share their analyses with business people in their companies. RStudio Connect allows them to share their complex models, visualizations, and apps with others with a single click. Unlike other data science platforms such as SAS or Tableau, RStudio Connect is extensible to other languages and platforms, and as you'll see, doesn't even require you to know R to make use of it.
+* Basic  ►
+* Master  ►
+* Killdozer ►
 
-I'm going to use a scenario that demonstrates 5 functions of RStudio Connect: 
 
-1. results sharing, 
-2. parameterization, 
-3. scheduling, 
-4. app hosting, and 
-5. publishing.
+Our goal is to better understand the product mix and prospects for the company's widget business.
+ 
+### Act 1: Virginia Asks For A Forecast (01-mvd-forecast.Rmd)
 
-	But I'm getting ahead of myself. What I really want to do is to tell you the story of Data Scientist Dave, who works for Vice President Virginia. They work for a company called Digicomputronimatics that makes three kind of widgets:
-  
-* Basic
-* Master
-* KillDozer.
-
-### Document 1: Results Sharing (01-mvd-forecast.Rmd)
 VP Virginia is concerned about the sales downturn in total widget sales over the past few months, despite being up year over year. She asks data scientist Dave to do a forecast for the rest of 2018 from her Excel spreadsheet.
 
-Dave pulls the data into R and fits a model that can accommodate both trending and seasonality (it's called a Holt Winters model for those interested in the technical details). Dave then generates a forecast using that model, graphs the results, and publishes the document on RStudio Connect for Virginia so that the document can be shared with others. He notes that sales don't appear to be recovering, but there's some hope coming in Q1 2019.
+### Act 1: Getting Started
 
-#### Takeaways
+This code screen shot isn't going to make much sense to the business user, but trust us, this is a place your data scientist lives. 
+
+Dave starts on his desktop using the RStudio R development environment. This could be the free and open source RStudio version or it could be the RStudio Pro version; it doesn't matter which Dave uses. Both work equally well with RStudio Connect.
+
+### Act 1: Results Sharing
+
+* Dave creates an analysis that uses Virginia's Excel data as input
+* The analysis uses R Markdown, a system that combines text, R code, and R results into a single unified document
+* Dave clicks one button to publish it to Virginia as a Web page
+
+### Act 1: Published Document
+
+Here's a screenshot of the final forecast for all widgets showing a dip at the end of the year and then a bounce as we get into 2019.
+
+If you want to see the complete document, click the ink shown at the bottom of this slide to see the live analysis output on RStudio Connect.
+
+#### Act 1: Takeaways
 The takeaways from this simple forecast are:
 
-* Dave can easily create and visualize a forecast from existing Excel data using R, which is not a simple thing to do in competing tools like Excel or Tableau.
-* Dave can share the results of his analysis on RStudio Connect by pushing a single Publish button. No screenshotting or copying and pasting of results is needed to get his results to Virginia.
+* The Breadth and power of R. ► This forecast is only about a page of R code, including data ingestion, modeling and graphics.
+* Simple document creation. ► This analysis not only has a model and its output, but text explaining what it means, which is critical for business people who want to understand it.
+* One-button publishing. ► The data scientist published this analysis to the web with a single click.
+
+So now we have a forecast for all widgets, but we really need more information to understand the product mix.
 
 
-### Document 2: Parameterized Forecasts and Scheduling (02-mvd-parameterized-forecast.Rmd, 02-mvd-basic-forecast.Rmd, 02-mvd-master-forecast.Rmd, 02-mvd-killdozer-forecast.Rmd)
+### Act 2: On-Demand Custom Reports With Scheduling and Email
 
-VP Virginia asks Dave to create similar forecasts for each of the 3 widget products.
+VP Virginia now asks Dave ► if he can customize these forecasts for each product and send each product manager their appropriate forecast.
 
-Dave adds parameters to his model in R Markdown document for both the product and for the length of the forecast. He then publishes those parameterized forecasts for the three different products as well as for the full forecast, and schedules them to be emailed to the product managers each month.
+Many people would simply create three different reports to satisfy this request. However, R Markdown offers a more sustainable solution: parameterized custom reports.
 
-#### Takeaways
-The takeaways from these parameterized forecasts are:
+### Act 2: Report Customization
+Dave adds customization parameters to his R Markdown document that allow the user to specify the product and the length of the forecast. ► The rest of his code remains the same.
 
-* Dave can encapsulate his models in RMarkdown so that others who don't know R can customize them.
-* Dave can schedule these models to be run on a regular basis without knowing anything about server scheduling or scripts. 
-* Dave's model results can be automatically emailed to business users on a schedule, regardless of whether Dave is online or not.
+Dave then publishes his document to RStudio Connect using the Publish button, and we see the forecast for Basic widgets over 9 months as specified by the parameters. ►
+However, now the published document has a tab labeled "INPUT" ►
 
-Again, this is not easy to do with competing products such as Tableau.
+When Dave clicks on this INPUT tab, he has an opportunity to change the forecast.
 
-### Document 3: Shiny On-Demand Forecast (03-mvd-shiny-forecast)
-Virginia now would like members of her staff to have access to the forecasts Dave has created on demand.
+### Act 2: Changing Report Parameters
+After clicking on the INPUT tab, Connect displays a PARAMETERS sidebar. ► On that sidebar, we can change the product to be forecast to Master. Once that change is made, we can run the forecast again and see that Master Widgets sales are perhaps one of the reasons that widget sales overall are sluggish.
+
+Now remember that VP Virginia asked that Dave email these reports to each of the product managers every month. Fortunately, Connect provides an option to do just that.
+
+### Act 2: Emailing Scheduled Reports
+
+By clicking on the Schedule button next to the document, ► Dave can request that this report be run monthly on the first day of each month.
+
+In addition, ► Dave can instruct Connect to email the report to email the resulting report to users granted access to the document.
+
+So once Dave has published his parameterized report on Connect, he can schedule and email a report every month to each product manager with just a couple of clicks. And best of all, he no longer has to be involved in this process; he has made his analysis a stand-alone product for his business users.
+
+#### Act 2: Custom Report Takeaways
+The takeaways from these customized analytical forecasts are:
+
+* Analyses can easily be turned into customize-able reports using R Markdown
+* Reports can be scheduled to run and email the results automatically
+* Report authors don't have to be involved in ongoing report generation
+
+Just as a thought experiment, how would you perform this same task -- automating three analyses to run every month and email the results to a set of business users -- with a GUI product like SAS or Tableau? Using a scripting system like R combined with RStudio Connect makes this all possible with just a few clicks.
+
+
+### Act 3: Dynamic Analytics
+Virginia now would like dynamic forecasts on demand so that others on the business side of the company can plan out production.
+
+### Act 3: Shiny Brings Analytics To Life
   
-Dave creates a new Shiny app that uses his forecast logic, but allows them to select the product being forecasted and length of forecast. He publishes this app to RStudio Connect using a similar single button to the way that he published his initial forecast, but instead of it publishing a document, it publishes a live application that runs in a duplicate of Dave's forecasting environment.
+Dave creates a new Shiny app that uses his forecast logic, but changes the header to use the Shiny runtime. He also adds a new section to his document that allows users to select the product being forecasted and length of forecast. ►
 
-#### Takeaways
-The takeaways from the Shiny app forecast are:
+Dave publishes this app to RStudio Connect using a similar single button to the way that he published his initial forecast. ► This time, however,  instead of it publishing a document, RStudio Connect now hosts a live application that runs in a duplicate of Dave's forecasting environment.
 
-* Members of Virginia's staff have access to Dave's models whenever they need it, regardless of whether Dave is around or not.
-* Business leaders can control the length of forecast and the product being forecasted.
-* Despite using R, business users are shielded from the language. All they see is a simple application they can use.
+### Act 3: Shiny Brings Analytics To Life
 
-### Document 4: Forecasting API (TBD)
-Virginia now wants her product managers to be able to pull Dave's forecast into their spreadsheets directly.
+The resulting Shiny app now runs on RStudio Connect, allowing Dave to move on to other things. Meanwhile, Connect now provides this set of analytics to any authorized user to explore his forecast for any or all of the products.
 
-Dave creates a simple Web API that encapsulates his forecasting model that allows anyone with the proper Web URL to pull the data from his forecast directly. Each product manager can use their own URL for pulling their product information, forecast, and desired forecast length.
+### Act 3: Dynamic Analytics / Dashboards
 
-#### Takeaways
-The takeaways from this API are:
+While this app satisfies Virginia's request for on-demand forecasting, she now has heard from marketing that they would really like a forecast dashboard. Dashboards are cool; could we build that for them too?
 
-* The knowledge that Dave created in his model can now be used by other business people in the company without them knowing R. All they need to know is their URL.
-* Dave's forecast is now hosted by RStudio Connect, allowing him to move onto other projects without being involved in this project further.
-* The output of Dave's model can be easily integrated into other business tools such as Excel spreadsheets.
+### Act 3: R Markdown Makes Dashboards Easy
 
-### Document 5: Automated PowerPoint Forecast
-Virginia now has to present these monthly forecasts to the CEO in a PowerPoint presentation. Instead of just copying and pasting the information into a PowerPoint deck, Dave changes the R Markdown codea around his forecast so that it creates PowerPoint slides for Virginia directly.
+As it turns out, Dave has already set up his Shiny code as part of a flexdashboard. ►  A flexdashboard is just some Markdown text that allows Dave to add additional alert boxes and text to his Shiny dynamic analytics app. 
 
-#### Takeaways
-Automated PowerPoint generation helps the business move forward because:
+Dave now adds those R Markdown blocks to his document, and publishes it again. ► Now he has a dashboard for marketing that not only provides the forecast, but alerts users to values that may be of interest.
 
-* The automated PowerPoint slides don't create resolution or aspect ratio issues that might arise from copy and pasting images.
-* The PowerPoint generated always has the latest version of the forecast and data.
-* PowerPoint generation can be scheduled to automatically run for Virginia the day before her meeting with the CEO every month.
-* Dave no longer has to be directly involved in this forecasting workflow, freeing him up to work on other business projects.
+### Act 3: Shiny Dashboard Hosted On Connect
 
+The resulting Web dashboard now lives on RStudio Connect for any authorized user in the business to access.
+
+#### Act 3: Takeaways
+Dynamic analytics in the form of Shiny apps and dashboards give Virginia's group a host of new capabilities.
+
+* Static reports turn into on-demand interactive Shiny apps for business users
+* Data scientists can publish Shiny apps in R with a single button
+* Data scientists can create dashboards by adding R Markdown
+* RStudio Connect hosts those on-demand apps while replicating the data scientist's R environment.
+
+At this point, Dave has successfully bridged the gap between his data science and Virginia's direct reports by publishing his analyses on RStudio Connect where any authorized user can view them. But now, we're going to go even farther: we're going to make Dave's analysis available to a much broader business audience.
+
+### Act 4: Creating A Forecasting Service (API)
+Virginia now says, "Finance wants to use your forecasts in their spreadsheets. How can they do that?"
+
+Dave can do this by creating something called an Application Programming Interface or API. In most environments, this would require a fair amount of custom programming and server configuration to get it running. But with R and RStudio Connect, this process becomes only a few minutes work.
+
+### Act 4: Plumber Projects Create A Web Interface Around R Code
+
+To do this, Dave creates what's called a plumber project in RStudio Desktop. Plumber is an R package that makes APIs out of R functions. A plumber project is simply a special type of project in RStudio that allows us to easily build and test these new APIs.
+
+### Act 4: Plumber Projects Create A Web Interface Around R Code
+
+To make his forecasting function into an API, Dave inserts a set of special comments at the beginning of his function. These comments define what Web requests the function will accept and what format it should return its results in.
+
+### Act 4: How Does This Help Excel Users?
+
+Now APIs are all well and good, but Virginia doesn't quite see how this helps the folks in Finance who want to get Dave's forecast into Excel on their PCs.
+
+### Act 4: Windows Excel Can Access Web APIs!
+
+The missing link here is the fact that Microsoft Excel (and some other spreadsheets such as Google Sheets as well) knows how to fetch data from Web APIs.
+
+Dave tells Finance to use the Data menu in Excel and to choose the From Web option. After the dialog box asking for an address shows up, Dave tells Finance to enter the following address:
+
+http://colorado.rstudio.com/rsc/content/1391/forecast?forecast_duration=9&series=All
+
+After a short wait, Finance sees the following in Excel.
+
+### Act 4: Windows Excel Can Access Web APIs!
+
+The returned table of forecast data appears in Excel in Excel's native formats.
+Finance can further configure the spreadsheet to fetch this data each time it is opened, should they wish to always have the latest forecast.
+
+
+#### Act 4: Forecasting Service Takeaways
+
+With just a little bit of work Dave has bridged another gap with the business users in his company. The takeaways here are:
+
+The knowledge that Dave created in his model can now be used as a forecasting service by turning it into an API.
+Data scientists can publish APIs to RStudio Connect with a single click; consider how long this might take on other platforms
+This forecasting service now allow R results to be shared with business users who don't use R in tools they are used to.
+
+But wait; Virginia has just one more request.
+
+### Act 5: Automated PowerPoint Forecast
+
+The CEO wants Dave's forecast in her monthly slide deck. How can we do that?
+
+### Act 5: Slide Presentations Are Just Markdown Documents
+
+As we've seen previously, we can change the form in which our analysis is published by changing the header of our R Markdown document. Instead of specifying our output will be an html_document or a flexdashboard, we're going to change the output parameter to be "powerpoint_presentation". ► We will also add a corporate PowerPoint template for the document to use.
+
+We can create slides in R Markdown using standard markdown conventions. Headers indicated by sharp signs turn into new slides. R Markdown bullets show up as slide bullets. ►
+
+The analysis, though, all remains the same as it was when we were publishing to a Web page. The forecast values get rendered on a slide titled "Forecast Table" ►
+
+Similarly, the forecast graph gets rendered on a slide titled "Forecast Graph".
+
+When Dave makes those changes and hits the publish button, He sees the following slides get created on Connect:
+
+### Act 5: Slide Presentations Are Just Markdown Documents
+
+As we've seen previously, we can change the form in which our analysis is published by changing the header of our R Markdown document. Instead of specifying our output will be an html_document or a flexdashboard, we're going to change the output parameter to be "powerpoint_presentation". ► We will also add a corporate PowerPoint template for the document to use.
+
+We can create slides in R Markdown using standard markdown conventions. Headers indicated by sharp signs turn into new slides. R Markdown bullets show up as slide bullets. ►
+
+The analysis, though, all remains the same as it was when we were publishing to a Web page. The forecast values get rendered on a slide titled "Forecast Table" ►
+
+Similarly, the forecast graph gets rendered on a slide titled "Forecast Graph".
+
+When Dave makes those changes and hits the publish button, He sees the following slides get created on Connect:
+
+### Act 5: Slide Presentations Are Just Markdown Documents
+
+This is what the resulting PowerPoint slides look like. Notice that the R tables and charts use the Digitcomputronimatics PowerPoint template and colors, allowing the CEO to just drop these slides into her presentation with no changes.
+
+Because this document was published through RStudio Connect, these slides can be produced and emailed automatically according to a schedule, just as we did with the original analysis.
+
+### Act 5: Slide Publishing Takeaways
+Our slide publishing takeaways are these:
+* R Markdown documents can generate PowerPoint slides directly
+* Custom slide templates are supported
+* All outputs come from the same R code
+* No more cut and paste
+* Slides can be automatically published and emailed from RStudio Connect just as with other documents
+
+So in summary, we've shown you five ways that RStudio Connect bridges the gap between your data scientists and the rest of your business people.
+
+### Connect Bridges The Gap Between Data Science And The Business
+
+1. Easy results sharing with one button publishing.
+2. Custom reports with scheduling and email that allow users to configure what they get.
+3. Dynamic analytics and dashboards that allow your users to directly interact with the data your data scientists produce
+4. Application Programming Interfaces (API) that allow people who don't use R to use R's results
+5. Slide publishing which allows users to drop R tables and graphical slides right into their PowerPoint decks while eliminating error-prone copying and pasting
+
+And these are just 5 commonly used features. RStudio Connect offers many others as well. That's why we say....
+ 
+### RStudio Connect is a publishing platform that makes sharing data science simple.
+ 
+We appreciate your attention and would be happy to answer any questions you may have.

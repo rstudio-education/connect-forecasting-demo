@@ -1,5 +1,5 @@
 ---
-title: "Minimum Viable Demo Setup Script"
+title: "Widget Forecast Demo Setup Script"
 author: "Carl Howe"
 date: "6/22/2018"
 output: html_document
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Description
 
-This document is used to generate some data for analysis during the RStudio Connect Minimum Viable Demo. I mean it to be run prior to performing the demo so that all the data necessary for the demo is in place.
+This document is used to generate some data for analysis during the RStudio Forecast Demo. I mean it to be run prior to performing the demo so that all the data necessary for the demo is in place.
 
 The concept is
 that a company called Digitcomputronimatics has 3 products: WidgetBasic (represented by variable widget_basic), WidgetMaster (widget_master), and WidgetKillDozer (widget_killdozer). Sales overall are increasing. However, the sales of the WidgetBasic and WidgetKillDozer are masking a decline in sales for the WidgetMaster, which our analysis will reveal.
@@ -53,7 +53,7 @@ widget_sales <- tibble('date' = sales_period,
 widget_sales <- widget_sales %>% 
                        mutate(total_sales = widget_basic_sales + widget_killdozer_sales + widget_master_sales)
 widget_sales <- as_tbl_time(widget_sales, index=date)
-print(widget_sales %>% filter_time(~ '2018'))
+# print(widget_sales %>% filter_time(~ '2018'))
 widget_sales_gathered <- gather(widget_sales, key='product', value="sales", 
                                 widget_basic_sales, widget_killdozer_sales, widget_master_sales, total_sales) %>%
                          arrange(date)
