@@ -1,6 +1,6 @@
 ---
 title: "Widget Forecast Demo Setup Script"
-author: "Carl Howe"
+author: "RStudio"
 date: "6/22/2018"
 output: html_document
 ---
