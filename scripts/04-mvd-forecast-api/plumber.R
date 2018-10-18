@@ -93,7 +93,7 @@ forecast_table <- function(series = "All", forecast_duration = 9) {
 #* Return forecast JSON data for one of the widget products
 #* @param series Product name (Basic, Killdozer, Master, All)
 #* @param forecast_duration Forecast duration (numeric between 3 and 15)
-#* @get /forecast-data
+#* @get /forecast_data
 forecast_data <- function(series = "All", forecast_duration = 9) {
   table_output <- data_prep(series = series, forecast_duration = forecast_duration)
   return(table_output)
