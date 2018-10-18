@@ -17,6 +17,10 @@ library(sweep)
 library(plumber)
 library(jsonlite)
 
+#* @apiTitle Widget Forecast API
+#* @apiDescription This API provides widget forecasts for Digicomputronimatics.
+#* @apiVersion 1.0.0
+
 format_html <- function(df) {
   header <- paste0("<html><table><tr><td>", paste(names(df), collapse="</td><td>"), "</td></tr>")
   footer <- "</table></html>"
@@ -28,16 +32,7 @@ format_html <- function(df) {
   return(str_c(header, table_string, footer, sep="", collapse=""))
   }
 
-#* @apiTitle Widget Forecast
-
-#* Return a forecast for one of the widget products
-#* @param series Product name (Basic, Killdozer, Master, All)
-#* @param forecast_duration Forecast duration (numeric between 3 and 15)
-#* @get /forecast
-#* @html
-
-function(series = "All", forecast_duration = 9) {
-  
+data_prep <- function(series = "All", forecast_duration = 9) {
   # load data in 'global' chunk so it can be shared by all users of the dashboard
   monthly_widget_sales <- read_csv("/tmp/mvd-data/widget_sales_monthly.csv") # Read in the data
   monthly_widget_sales_gathered <- gather(monthly_widget_sales, key='product', value="sales", 
@@ -81,21 +76,25 @@ function(series = "All", forecast_duration = 9) {
   table_output <- monthly_sales_forecasts_filtered %>% 
     mutate(textdate = as.character(as.yearmon(index)),
            rounded_sales = round(sales, digits=0)) %>%
-    select(textdate, rounded_sales)
-  names(table_output) <- c("Date", "Sales")
+    select(Date = textdate, Sales = rounded_sales)
+}
+
+#* Return a forecast HTML table for one of the widget products
+#* @param series Product name (Basic, Killdozer, Master, All)
+#* @param forecast_duration Forecast duration (numeric between 3 and 15)
+#* @get /forecast
+#* @html
+forecast_table <- function(series = "All", forecast_duration = 9) {
+  table_output <- data_prep(series = series, forecast_duration = forecast_duration)
   result <- format_html(table_output)
   return(result)
 }
 
-#* Return a description of this API
-#* @get /
-#* @html
-function() {
-    text <- paste("This API provides widget forecasts for Digicomputronimatics.",
-              "Call this API using HTTP GET /forecast.",
-              "Parameter forecast_period specifies how many months to forecast.",
-              "Parameter series species the product name from the list All, Basic, Master, and Killdozer", 
-              sep="</p><p>")
-    string <- paste0("<html><p>", text, "</p></html>" )
-    return(string)
+#* Return forecast JSON data for one of the widget products
+#* @param series Product name (Basic, Killdozer, Master, All)
+#* @param forecast_duration Forecast duration (numeric between 3 and 15)
+#* @get /forecast_data
+forecast_data <- function(series = "All", forecast_duration = 9) {
+  table_output <- data_prep(series = series, forecast_duration = forecast_duration)
+  return(table_output)
 }

@@ -1,0 +1,16 @@
+default:
+  apps:
+    - name: "Data Setup"
+      path: "scripts/00-mvd-setup"
+    - name: "Forecast"
+      path: "scripts/01-mvd-forecast"
+    - name: "Custom Report"
+      path: "scripts/02-mvd-custom-reports"
+    - name: "Shiny Dashboard"
+      path: "scripts/03-mvd-shiny-dashboard"
+    - name: "Shiny Forecast"
+      path: "scripts/03-mvd-shiny-forecast"
+    - name: "Forecast API"
+      path: "scripts/04-mvd-forecast-api"
+    - name: "Forecast PowerPoint"
+      path: "scripts/05-mvd-forecast-powerpoint"
