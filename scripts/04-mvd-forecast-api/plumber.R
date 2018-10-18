@@ -35,7 +35,6 @@ format_html <- function(df) {
 #* @param forecast_duration Forecast duration (numeric between 3 and 15)
 #* @get /forecast
 #* @html
-
 function(series = "All", forecast_duration = 9) {
   
   # load data in 'global' chunk so it can be shared by all users of the dashboard
